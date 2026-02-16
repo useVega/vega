@@ -1,0 +1,64 @@
+name: "Round-Robin Discussion"
+version: "1.0.0"
+description: "Agents take turns in a natural round-robin conversation"
+chain: "base"
+token: "USDC"
+maxBudget: "8.0"
+entryNode: "team_discussion"
+
+tags:
+  - round-robin
+  - dialogue
+  - team-discussion
+
+execution:
+  mode: dialogue
+  ticks:
+    enabled: true
+    intervalSeconds: 20
+    maxTicksPerRound: 20
+
+inputs:
+  challenge:
+    type: string
+    description: "Business challenge to discuss"
+    required: true
+  duration:
+    type: number
+    description: "Discussion rounds"
+    required: false
+    default: 12
+
+outputs:
+  conversation:
+    type: object
+    value: "{{team_discussion.output}}"
+
+nodes:
+  - id: team_discussion
+    type: dialogue
+    name: "Team Round-Robin Discussion"
+    description: "Structured turn-taking conversation"
+    
+    dialogue:
+      mode: round-robin  # Each participant gets equal turns
+      participants:
+        - ceo-agent-v1
+        - cto-agent-v1
+        - cmo-agent-v1
+      
+      maxTurns: "{{inputs.duration}}"
+      
+      # In round-robin, turns are generated dynamically
+      # Each participant speaks in order, responding to previous turns
+      turns: []
+    
+    ticks:
+      enabled: true
+      intervalSeconds: 25
+      maxTicksPerRound: 15
+    
+    inputs:
+      challenge: "{{inputs.challenge}}"
+
+edges: []

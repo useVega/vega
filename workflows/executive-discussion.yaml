@@ -1,0 +1,138 @@
+name: "Executive Product Discussion"
+version: "1.0.0"
+description: "Multi-round discussion between CEO, CTO, and CMO about a product idea"
+chain: "base"
+token: "USDC"
+maxBudget: "5.0"
+
+tags:
+  - product
+  - discussion
+  - executives
+  - ai-agents
+
+inputs:
+  productIdea:
+    type: string
+    description: "The product idea to discuss"
+    required: true
+  rounds:
+    type: number
+    description: "Number of discussion rounds"
+    required: false
+    default: 2
+
+outputs:
+  summary:
+    type: object
+    description: "Complete discussion summary"
+    value: "{{summarize.output}}"
+  ceo_perspective:
+    type: string
+    description: "CEO's final thoughts"
+    value: "{{ceo_round2.response}}"
+  cto_perspective:
+    type: string
+    description: "CTO's final thoughts"
+    value: "{{cto_round2.response}}"
+  cmo_perspective:
+    type: string
+    description: "CMO's final thoughts"
+    value: "{{cmo_round2.response}}"
+
+nodes:
+  # Round 1: Initial perspectives
+  - id: ceo_round1
+    ref: ceo-agent-v1
+    name: "CEO Initial Analysis"
+    description: "CEO provides initial strategic perspective"
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      previousDiscussion: []
+
+  - id: cto_round1
+    ref: cto-agent-v1
+    name: "CTO Initial Analysis"
+    description: "CTO provides initial technical perspective"
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      previousDiscussion:
+        - "CEO: {{ceo_round1.response}}"
+
+  - id: cmo_round1
+    ref: cmo-agent-v1
+    name: "CMO Initial Analysis"
+    description: "CMO provides initial marketing perspective"
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      previousDiscussion:
+        - "CEO: {{ceo_round1.response}}"
+        - "CTO: {{cto_round1.response}}"
+
+  # Round 2: Responses to each other
+  - id: ceo_round2
+    ref: ceo-agent-v1
+    name: "CEO Response"
+    description: "CEO responds to CTO and CMO insights"
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      previousDiscussion:
+        - "CEO Round 1: {{ceo_round1.response}}"
+        - "CTO Round 1: {{cto_round1.response}}"
+        - "CMO Round 1: {{cmo_round1.response}}"
+
+  - id: cto_round2
+    ref: cto-agent-v1
+    name: "CTO Response"
+    description: "CTO responds with refined technical insights"
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      previousDiscussion:
+        - "CEO Round 1: {{ceo_round1.response}}"
+        - "CTO Round 1: {{cto_round1.response}}"
+        - "CMO Round 1: {{cmo_round1.response}}"
+        - "CEO Round 2: {{ceo_round2.response}}"
+
+  - id: cmo_round2
+    ref: cmo-agent-v1
+    name: "CMO Response"
+    description: "CMO responds with refined marketing insights"
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      previousDiscussion:
+        - "CEO Round 1: {{ceo_round1.response}}"
+        - "CTO Round 1: {{cto_round1.response}}"
+        - "CMO Round 1: {{cmo_round1.response}}"
+        - "CEO Round 2: {{ceo_round2.response}}"
+        - "CTO Round 2: {{cto_round2.response}}"
+
+  # Summarize discussion
+  - id: summarize
+    ref: summarizer-agent-v1
+    name: "Summarize Discussion"
+    description: "Create executive summary of the discussion"
+    inputs:
+      discussion:
+        - "CEO Round 1: {{ceo_round1.response}}"
+        - "CTO Round 1: {{cto_round1.response}}"
+        - "CMO Round 1: {{cmo_round1.response}}"
+        - "CEO Round 2: {{ceo_round2.response}}"
+        - "CTO Round 2: {{cto_round2.response}}"
+        - "CMO Round 2: {{cmo_round2.response}}"
+      productIdea: "{{inputs.productIdea}}"
+
+edges:
+  - from: ceo_round1
+    to: cto_round1
+  - from: cto_round1
+    to: cmo_round1
+  - from: cmo_round1
+    to: ceo_round2
+  - from: ceo_round2
+    to: cto_round2
+  - from: cto_round2
+    to: cmo_round2
+  - from: cmo_round2
+    to: summarize
+  - from: summarize
+    to: output

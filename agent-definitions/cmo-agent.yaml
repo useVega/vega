@@ -1,0 +1,36 @@
+id: cmo-agent-v1
+name: "CMO Marketing Agent"
+version: "1.0.0"
+description: "Marketing strategy analysis from CMO perspective"
+endpoint: "http://localhost:3012/execute"
+
+tags:
+  - marketing
+  - branding
+  - positioning
+  - executive
+
+inputs:
+  productIdea:
+    type: string
+    description: "Product idea to analyze"
+    required: true
+  previousDiscussion:
+    type: array
+    description: "Previous discussion context"
+    required: false
+
+outputs:
+  response:
+    type: string
+    description: "CMO's marketing perspective"
+  perspective:
+    type: string
+    description: "Role identifier (CMO)"
+  focus:
+    type: array
+    description: "Key focus areas"
+
+pricing:
+  model: per-call
+  basePrice: "0.10"

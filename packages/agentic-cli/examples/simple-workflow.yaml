@@ -1,0 +1,30 @@
+name: "Simple Text Processing"
+version: "1.0.0"
+description: "A simple workflow that processes text input"
+chain: "base"
+token: "USDC"
+maxBudget: "1.0"
+
+inputs:
+  text:
+    type: string
+    description: "Text to process"
+    required: true
+
+outputs:
+  result:
+    type: string
+    description: "Processed text"
+    value: "{{process.output}}"
+
+nodes:
+  - id: process
+    ref: text-processor-v1
+    name: "Process Text"
+    description: "Process the input text"
+    inputs:
+      text: "{{inputs.text}}"
+
+edges:
+  - from: process
+    to: output

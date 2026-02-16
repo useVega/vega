@@ -1,0 +1,47 @@
+{
+  "name": "@vega-protocol/cli",
+  "version": "1.0.0",
+  "description": "CLI tool for running Vega Protocol workflows",
+  "type": "module",
+  "bin": {
+    "agentic": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "vega",
+    "protocol",
+    "workflow",
+    "cli",
+    "agent",
+    "automation"
+  ],
+  "author": "Vega Protocol",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "inquirer": "^9.2.12",
+    "ora": "^8.0.1",
+    "cli-table3": "^0.6.3",
+    "yaml": "^2.8.2",
+    "boxen": "^7.1.1",
+    "figlet": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/figlet": "^1.5.8",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

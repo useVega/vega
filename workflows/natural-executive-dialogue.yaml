@@ -1,0 +1,150 @@
+name: "Natural Executive Dialogue"
+version: "2.0.0"
+description: "Natural conversation between executives with scheduling and tick control"
+chain: "base"
+token: "USDC"
+maxBudget: "10.0"
+entryNode: "executive_discussion"
+
+tags:
+  - dialogue
+  - executives
+  - scheduled
+  - natural-conversation
+
+# Workflow-level execution configuration
+execution:
+  mode: dialogue  # Options: rounds, ticks, scheduled, dialogue
+  schedule:
+    startTime: "09:00"  # Agents operate 9 AM to 5 PM
+    endTime: "17:00"
+    timezone: "Asia/Kolkata"
+    daysOfWeek: [1, 2, 3, 4, 5]  # Monday-Friday
+  ticks:
+    enabled: true
+    intervalSeconds: 30  # Agents can respond every 30 seconds
+    maxTicksPerRound: 10  # Max 10 responses per round
+
+inputs:
+  productIdea:
+    type: string
+    description: "The product idea to discuss"
+    required: true
+  topic:
+    type: string
+    description: "Specific topic focus"
+    required: false
+    default: "market strategy"
+
+outputs:
+  dialogue:
+    type: object
+    description: "Complete conversation"
+    value: "{{executive_discussion.output}}"
+  summary:
+    type: string
+    description: "AI-generated summary"
+    value: "{{summarize.output}}"
+
+nodes:
+  # Dialogue-style conversation node
+  - id: executive_discussion
+    type: dialogue
+    name: "Executive Discussion"
+    description: "Natural conversation between CEO, CTO, and CMO"
+    
+    # Node-level schedule override
+    schedule:
+      startTime: "10:00"
+      endTime: "16:00"
+      timezone: "Asia/Kolkata"
+    
+    # Node-level tick configuration
+    ticks:
+      enabled: true
+      intervalSeconds: 45
+      maxTicksPerRound: 8
+    
+    # Dialogue configuration
+    dialogue:
+      mode: dynamic  # Options: sequential, round-robin, dynamic
+      participants:
+        - ceo-agent-v1
+        - cto-agent-v1
+        - cmo-agent-v1
+      
+      maxTurns: 15
+      endCondition: "{{turnCount >= 15}}"
+      
+      # Define natural conversation turns
+      turns:
+        - speaker: ceo-agent-v1
+          prompt: |
+            We're exploring a new product idea: {{inputs.productIdea}}
+            
+            As CEO, what's your initial strategic perspective on this opportunity?
+        
+        - speaker: cto-agent-v1
+          prompt: |
+            The CEO mentioned: {{conversationHistory[-1]}}
+            
+            From a technical standpoint, what are your thoughts on building this?
+          respondTo: [0]
+        
+        - speaker: cmo-agent-v1
+          prompt: |
+            The team has shared:
+            {{conversationHistory[-2]}}
+            {{conversationHistory[-1]}}
+            
+            How would you approach marketing this product?
+          respondTo: [0, 1]
+        
+        - speaker: ceo-agent-v1
+          prompt: |
+            Great insights everyone. Based on what we've discussed:
+            {{conversationHistory}}
+            
+            Let me address the concerns and opportunities I'm hearing.
+          respondTo: [1, 2]
+        
+        - speaker: cto-agent-v1
+          prompt: |
+            Building on the CEO's points:
+            {{previousTurns[-1].response}}
+            
+            Here are the technical implications and timeline considerations.
+          respondTo: [3]
+        
+        - speaker: cmo-agent-v1
+          prompt: |
+            Considering both strategic and technical aspects:
+            CEO: {{previousTurns[-2].response}}
+            CTO: {{previousTurns[-1].response}}
+            
+            Here's how we can position this in the market.
+          respondTo: [3, 4]
+    
+    inputs:
+      productIdea: "{{inputs.productIdea}}"
+      topic: "{{inputs.topic}}"
+
+  # Summarize the natural dialogue
+  - id: summarize
+    ref: summarizer-agent-v1
+    name: "Summarize Discussion"
+    description: "Create executive summary of the natural conversation"
+    
+    # This node can run anytime
+    schedule:
+      startTime: "00:00"
+      endTime: "23:59"
+    
+    inputs:
+      dialogue: "{{executive_discussion.output.conversationHistory}}"
+      turns: "{{executive_discussion.output.turns}}"
+      productIdea: "{{inputs.productIdea}}"
+
+edges:
+  - from: executive_discussion
+    to: summarize

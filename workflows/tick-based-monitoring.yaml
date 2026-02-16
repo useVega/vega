@@ -1,0 +1,89 @@
+name: "Tick-Based Monitoring"
+version: "1.0.0"
+description: "Continuous monitoring workflow using tick-based execution"
+chain: "base"
+token: "USDC"
+maxBudget: "20.0"
+entryNode: "check_health"
+
+tags:
+  - monitoring
+  - ticks
+  - continuous
+  - alerts
+
+# Pure tick-based execution without schedules
+execution:
+  mode: ticks
+  ticks:
+    enabled: true
+    intervalSeconds: 30  # Check every 30 seconds
+    maxTicksPerRound: 120  # Run for 1 hour per round
+
+inputs:
+  serviceUrl:
+    type: string
+    description: "Service URL to monitor"
+    required: true
+  thresholds:
+    type: object
+    description: "Alert thresholds"
+    required: false
+
+outputs:
+  status:
+    type: object
+    value: "{{check_health.output}}"
+  incidents:
+    type: array
+    value: "{{detect_issues.output}}"
+
+nodes:
+  # Fast health checks
+  - id: check_health
+    ref: health-checker-v1
+    name: "Health Check"
+    description: "Quick health status check"
+    
+    ticks:
+      enabled: true
+      intervalSeconds: 10  # Check every 10 seconds
+      maxTicksPerRound: 360  # 1 hour of checks
+    
+    inputs:
+      url: "{{inputs.serviceUrl}}"
+
+  # Slower issue detection
+  - id: detect_issues
+    ref: issue-detector-v1
+    name: "Detect Issues"
+    description: "Deep issue analysis"
+    
+    ticks:
+      enabled: true
+      intervalSeconds: 60  # Analyze every minute
+      maxTicksPerRound: 60
+    
+    inputs:
+      healthData: "{{check_health.output}}"
+      thresholds: "{{inputs.thresholds}}"
+
+  # Alert on problems
+  - id: send_alerts
+    ref: alert-sender-v1
+    name: "Send Alerts"
+    description: "Send notifications for issues"
+    
+    ticks:
+      enabled: true
+      intervalMinutes: 5  # Check for new alerts every 5 minutes
+      maxTicksPerRound: 12
+    
+    inputs:
+      issues: "{{detect_issues.output}}"
+
+edges:
+  - from: check_health
+    to: detect_issues
+  - from: detect_issues
+    to: send_alerts

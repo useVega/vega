@@ -1,0 +1,107 @@
+name: "Scheduled Market Analysis"
+version: "1.0.0"
+description: "Time-based workflow that runs during market hours with executive team discussion"
+chain: "base"
+token: "USDC"
+maxBudget: "5.0"
+entryNode: "market_discussion"
+
+tags:
+  - market-analysis
+  - scheduled
+  - ticks
+  - dialogue
+
+# Execute only during market hours
+execution:
+  mode: dialogue
+  schedule:
+    startTime: "23:30"  # Market opens
+    endTime: "09:45"    # Before market close
+    timezone: "Asia/Kolkata"
+    daysOfWeek: [0,1, 2, 3, 4, 5]  # Monday-Friday only
+  ticks:
+    enabled: true
+    intervalMinutes: 5  # Check every 5 minutes
+    maxTicksPerRound: 78  # Max checks per day (6.5 hours * 12)
+  dialogue:
+    mode: "round-robin"
+    participants:
+      - ceo-agent-v1
+      - cto-agent-v1
+      - cmo-agent-v1
+    maxTurns: 6
+
+inputs:
+  marketTopic:
+    type: string
+    description: "Market topic to analyze"
+    required: true
+  analysisDepth:
+    type: string
+    description: "Analysis depth level"
+    required: false
+    default: "standard"
+
+outputs:
+  discussion:
+    type: array
+    description: "Market analysis discussion"
+    value: "{{market_discussion.output}}"
+  summary:
+    type: object
+    description: "Executive summary"
+    value: "{{summarize.output}}"
+
+nodes:
+  # Market discussion with executive team
+  - id: market_discussion
+    type: dialogue
+    name: "Market Analysis Discussion"
+    description: "Executive team analyzes market conditions"
+    
+    schedule:
+      startTime: "09:30"
+      endTime: "16:00"
+      timezone: "Asia/Kolkata"
+      daysOfWeek: [1, 2, 3, 4, 5]
+    
+    ticks:
+      enabled: true
+      intervalMinutes: 5  # Discuss every 5 minutes
+      maxTicksPerRound: 78
+    
+    dialogue:
+      mode: "round-robin"
+      participants:
+        - ceo-agent-v1
+        - cto-agent-v1
+        - cmo-agent-v1
+      turns:
+        - speaker: ceo-agent-v1
+          prompt: "Analyze the current market conditions for {{inputs.marketTopic}}. What are the business opportunities?"
+        - speaker: cto-agent-v1
+          prompt: "From a technical perspective, what technology trends are affecting {{inputs.marketTopic}}?"
+          respondTo: 0
+        - speaker: cmo-agent-v1
+          prompt: "What are the marketing implications and customer sentiment around {{inputs.marketTopic}}?"
+          respondTo: 1
+        - speaker: ceo-agent-v1
+          prompt: "Based on the technical and marketing analysis, what strategic decisions should we make?"
+          respondTo: 2
+      # No maxTurns - runs continuously during scheduled hours
+
+  # Summary node
+  - id: summarize
+    type: agent
+    ref: summarizer-agent-v1
+    name: "Summarize Discussion"
+    description: "Create executive summary of market analysis"
+    
+    inputs:
+      discussion: "{{market_discussion.output}}"
+      topic: "{{inputs.marketTopic}}"
+
+edges:
+  - from: market_discussion
+    to: summarize

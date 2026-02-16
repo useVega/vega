@@ -1,0 +1,36 @@
+id: cto-agent-v1
+name: "CTO Technical Agent"
+version: "1.0.0"
+description: "Technical architecture analysis from CTO perspective"
+endpoint: "http://localhost:3011/execute"
+
+tags:
+  - technology
+  - architecture
+  - engineering
+  - executive
+
+inputs:
+  productIdea:
+    type: string
+    description: "Product idea to analyze"
+    required: true
+  previousDiscussion:
+    type: array
+    description: "Previous discussion context"
+    required: false
+
+outputs:
+  response:
+    type: string
+    description: "CTO's technical perspective"
+  perspective:
+    type: string
+    description: "Role identifier (CTO)"
+  focus:
+    type: array
+    description: "Key focus areas"
+
+pricing:
+  model: per-call
+  basePrice: "0.10"

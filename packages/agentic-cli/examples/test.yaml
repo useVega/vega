@@ -1,0 +1,26 @@
+name: test-workflow
+version: 1.0.0
+description: A simple workflow with one agent
+chain: base
+token: USDC
+maxBudget: "5.0"
+inputs:
+  text:
+    type: string
+    description: Input text
+    required: true
+outputs:
+  result:
+    type: string
+    description: Processed result
+    value: "{{process.output}}"
+nodes:
+  - id: process
+    ref: text-processor-v1
+    name: Process Text
+    description: Process the input text
+    inputs:
+      text: "{{inputs.text}}"
+edges:
+  - from: process
+    to: output

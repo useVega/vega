@@ -1,0 +1,25 @@
+id: text-processor-v1
+name: "Text Processor"
+version: "1.0.0"
+description: "Processes and transforms text data"
+endpoint: "http://localhost:3000/api/process"
+
+tags:
+  - text
+  - processing
+  - transformation
+
+inputs:
+  text:
+    type: string
+    description: "Input text to process"
+    required: true
+
+outputs:
+  result:
+    type: string
+    description: "Processed text output"
+
+pricing:
+  model: per-call
+  basePrice: "0.01"

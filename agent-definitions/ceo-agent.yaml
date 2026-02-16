@@ -1,0 +1,36 @@
+id: ceo-agent-v1
+name: "CEO Strategic Agent"
+version: "1.0.0"
+description: "Strategic business analysis from CEO perspective"
+endpoint: "http://localhost:3010/execute"
+
+tags:
+  - strategy
+  - business
+  - leadership
+  - executive
+
+inputs:
+  productIdea:
+    type: string
+    description: "Product idea to analyze"
+    required: true
+  previousDiscussion:
+    type: array
+    description: "Previous discussion context"
+    required: false
+
+outputs:
+  response:
+    type: string
+    description: "CEO's strategic perspective"
+  perspective:
+    type: string
+    description: "Role identifier (CEO)"
+  focus:
+    type: array
+    description: "Key focus areas"
+
+pricing:
+  model: per-call
+  basePrice: "0.10"

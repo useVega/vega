@@ -1,0 +1,36 @@
+id: summarizer-agent-v1
+name: "Executive Summarizer Agent"
+version: "1.0.0"
+description: "Synthesizes discussions and creates executive summaries"
+endpoint: "http://localhost:3013/execute"
+
+tags:
+  - summary
+  - synthesis
+  - assistant
+  - free
+
+inputs:
+  discussion:
+    type: array
+    description: "Array of discussion messages"
+    required: true
+  productIdea:
+    type: string
+    description: "Product being discussed"
+    required: false
+
+outputs:
+  summary:
+    type: string
+    description: "Comprehensive executive summary"
+  discussionLength:
+    type: number
+    description: "Number of messages summarized"
+  metadata:
+    type: object
+    description: "Additional context"
+
+pricing:
+  model: free
+  basePrice: "0.00"
